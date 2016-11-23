@@ -1,28 +1,37 @@
 package com.abc
 
-import scala.collection.mutable.ListBuffer
+import com.abc.customer.Customer
 
-class Bank {
-  private val customers = new ListBuffer[Customer]
+/**
+  * The case class representation for a bank.
+  *
+  * @param customers
+  * The customers associated with this bank.
+  */
+case class Bank(customers: List[Customer]) extends Summarizable {
+  val SUMMARY_TITLE: String = "Customer Summary"
 
-  def addCustomer(customer: Customer) = {
-    val currCustomerState = customers += customer
-    currCustomerState.toList
-  }
-
+  /**
+    * The summary associated with a bank.
+    *
+    * @return
+    * The summary string.
+    */
   def customerSummary: String = {
-    var summary: String = "Customer Summary"
-    for (customer <- customers)
-      summary = summary + "\n - " + customer.name + " (" + format(customer.numberOfAccounts, "account") + ")"
-    summary
+
+    customers.foldLeft(SUMMARY_TITLE)(_ + _.summarize)
   }
 
-  private def format(number: Int, word: String): String = {
-    number + " " + (if (number == 1) word else word + "s")
-  }
+  override def summarize: String = customerSummary
 
+  /**
+    * The total interest paid by this account.
+    *
+    * @return
+    * The total interest.
+    */
   def totalInterestPaid: Double = {
-    customers.reduce(_.totalInterestEarned + _.totalInterestEarned)
+    customers.foldLeft(0d)(_ + _.totalInterestEarned)
   }
 
 }
