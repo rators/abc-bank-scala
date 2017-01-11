@@ -4,8 +4,9 @@ import java.sql.Date
 
 import com.abc.customer.Account
 import com.abc.utils.DateProvider
+import org.joda.time.DateTime
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 /**
   * The transaction trait category.
@@ -20,8 +21,22 @@ sealed trait Transaction {
   /**
     * The date this transaction took place.
     */
-  val transactionDate = DateProvider.instance.now
+  val transactionDate = DateProvider.now
 }
+
+/**
+  * A withdrawal transaction case class representation.
+  *
+  * @param amount
+  * The amount of money withdrawn during this transaction.
+  */
+case class TestDeposit(override val amount: Double, override val transactionDate: DateTime) extends StandardTransaction {
+  Transaction.checkAmount(amount)
+
+  override def toString = s"TestTransaction(amount=$amount)"
+}
+
+
 
 /**
   * The transaction companion object. Contains convenience methods.
@@ -36,7 +51,7 @@ object Transaction {
     * @return
     * A success if and only if the amount is a positive value.
     */
-  def checkAmount(amount: Double) = {
+  def checkAmount(amount: Double): Try[Double] = {
     amount match {
       case it if amount <= 0 => Failure(throw new IllegalArgumentException("Negative transaction values not allowed."))
       case _ => Success(amount)
@@ -56,10 +71,19 @@ trait StandardTransaction extends Transaction
   * @param amount
   * The amount of money withdrawn during this transaction.
   */
-case class Withdrawal(override val amount: Double) extends StandardTransaction {
+class Withdrawal(override val amount: Double) extends StandardTransaction {
   Transaction.checkAmount(amount)
 
   override def toString = s"Withdrawal(amount=$amount)"
+}
+
+object Withdrawal {
+  def apply(amount: Double) = {
+    Transaction.checkAmount(amount)
+    new Withdrawal(- amount)
+  }
+
+  def unapply(arg: Withdrawal): Option[Double] = Some(arg.amount)
 }
 
 /**

@@ -48,16 +48,10 @@ object Teller {
     val fromTransfer = Transfer(Withdrawal(amount), to)
     val toTransfer = Transfer(Deposit(amount), from)
 
-    val fromLog = from.transactions :+ fromTransfer
-    val toLog = to.transactions :+ toTransfer
+    from.addTransaction(fromTransfer)
+    to.addTransaction(toTransfer)
 
-    val keepAccounts: List[Account] = c.accounts.filter((a) => a == from || a == to)
-
-    val accountsList: List[Account] = keepAccounts :+ from.copy(fromLog) :+ to.copy(toLog)
-
-    val slip = TransferSlip(fromLog, toLog)
-
-    TransferReceipt(Customer(c.name, accountsList), slip)
+    TransferReceipt(c, TransferSlip(from.transactions, to.transactions))
   }
 
 }
